@@ -16,11 +16,11 @@ define(['jquery'], function($) {
             });
         },
 
-        defferedTransaction: function(tx) {
+        deferredTransaction: function(tx) {
             var _this = this;
-            return new DefferedTransaction(tx);
+            return new DeferredTransaction(tx);
 
-            function DefferedTransaction(tx) {
+            function DeferredTransaction(tx) {
                 this.executeSql = function(sql, params) {
                     _this.log('execute sql : ' + sql);
 
@@ -30,10 +30,10 @@ define(['jquery'], function($) {
                         sql,
                         params || [],
                         function(tx, result) {
-                            d.resolve(new DefferedTransaction(tx), result);
+                            d.resolve(new DeferredTransaction(tx), result);
                         },
                         function(tx, result) {
-                            d.reject(new DefferedTransaction(tx), result);
+                            d.reject(new DeferredTransaction(tx), result);
                         }
                     );
 

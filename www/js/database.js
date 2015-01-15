@@ -7,7 +7,7 @@ define(['root', 'jquery'], function(root, $) {
         root.db.transaction(
             function(tx) {
                 root
-                    .defferedTransaction(tx)
+                    .deferredTransaction(tx)
                     .executeSql('CREATE TABLE IF NOT EXISTS SAMPLE_TABLE (ID INTEGER PRIMARY KEY, MESSAGE)')
                     .then(function(dtx, result) {
                         return dtx.executeSql('SELECT * FROM SAMPLE_TABLE');
