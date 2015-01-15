@@ -6,29 +6,27 @@ define(['root', 'jquery'], function(root, $) {
 
         root.db.transaction(
             function(tx) {
-                root
-                    .deferredTransaction(tx)
-                    .executeSql('CREATE TABLE IF NOT EXISTS SAMPLE_TABLE (ID INTEGER PRIMARY KEY, MESSAGE)')
-                    .then(function(dtx, result) {
-                        return dtx.executeSql('SELECT * FROM SAMPLE_TABLE');
+                var exec = root.deferredTransaction(tx);
+
+                exec.first('DROP TABLE IF EXISTS SAMPLE_TABLE')
+                    .then(exec('CREATE TABLE SAMPLE_TABLE (ID INTEGER PRIMARY KEY, MESSAGE)'))
+                    .then(exec('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['Hoge']))
+                    .then(exec('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['Fuga']))
+                    .then(exec('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['Piyo']))
+                    .then(exec('SELECT * FROM SAMPLE_TABLE'))
+                    .then(function(exec, result) {
+                        root.log('count=' + result.rows.length);
+                        return exec.first('DELETE FROM SAMPLE_TABLE WHERE MESSAGE=?', ['Fuga']);
                     })
-                    .then(function(dtx, result) {
-                        if (result.rows.length === 0) {
-                            return dtx.executeSql('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['database message 1'])
-                                .then(function(dtx, result) {
-                                    return dtx.executeSql('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['database message 2']);
-                                })
-                                .then(function(dtx, result) {
-                                    return dtx.executeSql('INSERT INTO SAMPLE_TABLE (MESSAGE) VALUES (?)', ['database message 3']);
-                                });
-                        }
+                    .done(function() {
+                        root.log('success to initialize database');
                     })
-                    .then(function() {
-                        root.log('finish initialize database');
+                    .fail(function(exec, result) {
+                        root.log('fail to initialize database : ' + JSON.stringify(result));
                     });
             },
             function(error) {
-                root.log('fail to initialize database : ' + e);
+                root.log('fail to initialize database');
             });
 
     });

@@ -3,42 +3,49 @@ define(['jquery'], function($) {
         log: function(message) {
             // weinre console is not work!!
             $('#console').append(message + '<br>');
+            // console.log(message);
         },
 
         deviceready: function(callback) {
-            var _this = this;
+            var root = this;
             document.addEventListener('deviceready', function() {
                 try {
                     callback();
                 } catch (e) {
-                    _this.log('error : ' + e);
+                    root.log('error : ' + e);
                 }
             });
         },
 
-        deferredTransaction: function(tx) {
-            var _this = this;
-            return new DeferredTransaction(tx);
+        deferredTransaction: function(transaction) {
+            var root = this;
+            exec.first = executeSql;
 
-            function DeferredTransaction(tx) {
-                this.executeSql = function(sql, params) {
-                    _this.log('execute sql : ' + sql);
+            return exec;
 
-                    var d = new $.Deferred();
-
-                    tx.executeSql(
-                        sql,
-                        params || [],
-                        function(tx, result) {
-                            d.resolve(new DeferredTransaction(tx), result);
-                        },
-                        function(tx, result) {
-                            d.reject(new DeferredTransaction(tx), result);
-                        }
-                    );
-
-                    return d.promise();
+            function exec(sql, params) {
+                return function(exec, result) {
+                    return exec.first(sql, params);
                 };
+            }
+
+            function executeSql(sql, params) {
+                var d = new $.Deferred();
+
+                root.log('execute sql : ' + sql + ', params=' + params);
+
+                transaction.executeSql(
+                    sql,
+                    params || [],
+                    function(tx, result) {
+                        d.resolve(root.deferredTransaction(tx), result);
+                    },
+                    function(tx, result) {
+                        d.reject(root.deferredTransaction(tx), result);
+                    }
+                );
+
+                return d.promise();
             }
         }
     };
